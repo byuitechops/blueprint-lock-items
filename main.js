@@ -18,25 +18,18 @@ module.exports = (course, stepCallback) => {
     }
 
     function lockItems(items, itemType, cb) {
-        asyncLib.eachLimit(items, (item, itemCb) => {
-
+        asyncLib.eachLimit(items, 5, (item, itemCb) => {
             canvas.put(`/api/v1/courses/${course.info.canvasOU}/blueprint_templates/default/restrict_item`, {
                     'content_type': itemType.type,
                     'content_id': item.id,
                     'restricted': true
                 },
-                (err, res) => {
-                    if (err) {
-                        itemCb(err);
-                        return;
-                    }
+                (itemErr, res) => {
+                    if (itemErr)
+                        course.throwErr('blueprint-lock-items', `${item.name} failed to lock. Err:${err}`);
                     itemCb(null);
                 });
-        }, (err) => {
-            if (err) {
-                cb(err);
-                return;
-            }
+        }, () => {
             cb(null);
         });
     }
@@ -63,7 +56,7 @@ module.exports = (course, stepCallback) => {
                 }
             });
             // console.log(JSON.stringify(filteredItems, null, 2));
-
+            console.log('starting to lock items');
             lockItems(filteredItems, itemType, cb);
         });
     }
@@ -83,7 +76,7 @@ module.exports = (course, stepCallback) => {
             course.throwErr('blueprint-lock-items', err);
             stepCallback(null, err);
         }
-        console.log('done');
+        course.success('blueprint-lock-items', 'locked everything');
         stepCallback(null, course);
     });
 };
