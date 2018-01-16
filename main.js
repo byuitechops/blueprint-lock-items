@@ -27,6 +27,8 @@ module.exports = (course, stepCallback) => {
                 (itemErr, res) => {
                     if (itemErr)
                         course.throwErr('blueprint-lock-items', `${item.name} failed to lock. Err:${err}`);
+                    else
+                        course.success('blueprint-lock-items', `Locked ${itemType.type}: ${item.name}`);
                     itemCb(null);
                 });
         }, () => {
@@ -34,6 +36,11 @@ module.exports = (course, stepCallback) => {
         });
     }
 
+    /********************************************************
+     * Setup uses the itemType object to get all instances
+     * of the given object type. it filters  out instances
+     * whos name matches an item in the unlockedNames array
+     ********************************************************/
     function setup(itemType, cb) {
         itemType.getter(course.info.canvasOU, (err, items) => {
             if (err) {
@@ -56,27 +63,55 @@ module.exports = (course, stepCallback) => {
                 }
             });
             // console.log(JSON.stringify(filteredItems, null, 2));
-            console.log('starting to lock items');
+            // console.log('starting to lock items');
             lockItems(filteredItems, itemType, cb);
         });
     }
+    /**************
+     * START HERE *
+     *************/
 
-
+    /* regex of item titles we don't want to lock */
     var unlockedNames = [/notes\s*from\s*instructor*/i];
+    /* objects to lock. allows setup to handle any type of object */
     var toLock = [{
-        type: 'assignment',
-        getter: canvas.getAssignments,
-        name: 'name',
-        id: 'id'
-    }];
+            type: 'assignment',
+            getter: canvas.getAssignments,
+            name: 'name',
+            id: 'id'
+        },
+        {
+            type: 'attachment',
+            getter: canvas.getFiles,
+            name: 'display_name',
+            id: 'id'
+        },
+        {
+            type: 'discussion_topic',
+            getter: canvas.getDiscussions,
+            name: 'title',
+            id: 'id'
+        },
+        {
+            type: 'quiz',
+            getter: canvas.getQuizzes,
+            name: 'title',
+            id: 'id'
+        },
+        {
+            type: 'wiki_page',
+            getter: canvas.getPages,
+            name: 'title',
+            id: 'page_id'
+        }
+    ];
 
-    /* get all assignments */
     asyncLib.eachSeries(toLock, setup, (err) => {
         if (err) {
             course.throwErr('blueprint-lock-items', err);
             stepCallback(null, err);
         }
-        course.success('blueprint-lock-items', 'locked everything');
+        // course.success('blueprint-lock-items', 'locked everything');
         stepCallback(null, course);
     });
 };
