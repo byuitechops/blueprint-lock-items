@@ -44,8 +44,9 @@ module.exports = (course, stepCallback) => {
     function setup(itemType, cb) {
         itemType.getter(course.info.canvasOU, (err, items) => {
             if (err) {
-                // do we really want to do this here?
-                cb(err);
+                /* move on to next item type if err */
+                course.throwErr('blueprint-lock-items', `Failed to get ${itemType.type}(s) ${err}`);
+                cb();
                 return;
             }
             var keep;
