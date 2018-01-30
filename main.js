@@ -8,11 +8,10 @@ const canvas = require('canvas-wrapper'),
     asyncLib = require('async');
 
 module.exports = (course, stepCallback) => {
-    course.addModuleReport('blueprint-lock-items');
 
     /* only run if the current course is a blueprint course & locking by obj type is enabled */
     if (!course.info.isBlueprint || !course.info.lockByObj) {
-        course.success('blueprint-lock-items', 'Determined this course is not a blueprint');
+        course.message('Determined this course is not a blueprint');
         stepCallback(null, course);
         return;
     }
@@ -20,17 +19,18 @@ module.exports = (course, stepCallback) => {
     function lockItems(items, itemType, cb) {
         asyncLib.eachLimit(items, 5, (item, itemCb) => {
             canvas.put(`/api/v1/courses/${course.info.canvasOU}/blueprint_templates/default/restrict_item`, {
-                    'content_type': itemType.type,
-                    'content_id': item.id,
-                    'restricted': true
-                },
-                (itemErr, res) => {
-                    if (itemErr)
-                        course.throwErr('blueprint-lock-items', `${item.name} failed to lock. Err:${err}`);
-                    else
-                        course.success('blueprint-lock-items', `Locked ${itemType.type}: ${item.name}`);
-                    itemCb(null);
-                });
+                'content_type': itemType.type,
+                'content_id': item.id,
+                'restricted': true
+            },
+            (itemErr, res) => {
+                if (itemErr)
+                    // course.error(itemErr);
+                    course.error(new Error(`Unable to lock ${item.name} Err: ${itemErr.message}`));
+                else
+                    course.log('Specific Items Locked', {'Item Name': item.name, 'Item Type': itemType.type}); //`Locked ${itemType.type}: ${item.name}`);
+                itemCb(null);
+            });
         }, () => {
             cb(null);
         });
@@ -45,7 +45,7 @@ module.exports = (course, stepCallback) => {
         itemType.getter(course.info.canvasOU, (err, items) => {
             if (err) {
                 /* move on to next item type if err */
-                course.throwErr('blueprint-lock-items', `Failed to get ${itemType.type}(s) ${err}`);
+                course.error(new Error(`Failed to get ${itemType.type}(s) ${err.message}`));
                 cb();
                 return;
             }
@@ -61,7 +61,7 @@ module.exports = (course, stepCallback) => {
                 return {
                     name: item[itemType.name],
                     id: item[itemType.id]
-                }
+                };
             });
             // console.log(JSON.stringify(filteredItems, null, 2));
             // console.log('starting to lock items');
@@ -76,43 +76,43 @@ module.exports = (course, stepCallback) => {
     var unlockedNames = [/notes\s*from\s*instructor*/i];
     /* objects to lock. allows setup to handle any type of object */
     var toLock = [{
-            type: 'assignment',
-            getter: canvas.getAssignments,
-            name: 'name',
-            id: 'id'
-        },
-        {
-            type: 'attachment',
-            getter: canvas.getFiles,
-            name: 'display_name',
-            id: 'id'
-        },
-        {
-            type: 'discussion_topic',
-            getter: canvas.getDiscussions,
-            name: 'title',
-            id: 'id'
-        },
-        {
-            type: 'quiz',
-            getter: canvas.getQuizzes,
-            name: 'title',
-            id: 'id'
-        },
-        {
-            type: 'wiki_page',
-            getter: canvas.getPages,
-            name: 'title',
-            id: 'page_id'
-        }
+        type: 'assignment',
+        getter: canvas.getAssignments,
+        name: 'name',
+        id: 'id'
+    },
+    {
+        type: 'attachment',
+        getter: canvas.getFiles,
+        name: 'display_name',
+        id: 'id'
+    },
+    {
+        type: 'discussion_topic',
+        getter: canvas.getDiscussions,
+        name: 'title',
+        id: 'id'
+    },
+    {
+        type: 'quiz',
+        getter: canvas.getQuizzes,
+        name: 'title',
+        id: 'id'
+    },
+    {
+        type: 'wiki_page',
+        getter: canvas.getPages,
+        name: 'title',
+        id: 'page_id'
+    }
     ];
 
     asyncLib.eachSeries(toLock, setup, (err) => {
         if (err) {
-            course.throwErr('blueprint-lock-items', err);
+            course.error(err);
             stepCallback(null, err);
         }
-        // course.success('blueprint-lock-items', 'locked everything');
+        course.message('locked everything');
         stepCallback(null, course);
     });
 };
