@@ -16,7 +16,7 @@ npm install blueprint-lock-items
 ```
 
 ## Run Requirements
-This child module only runs if `course.info.isBlueprint` & `course.info.lockByObj` exist and are set to true. Both are set in [course-make-blueprint](https://github.com/byuitechops/course-make-blueprint) after successfully making the course a blueprint course.
+This child module only runs if `course.info.isBlueprint` & `course.info.lockByObj` exist and are set to true. Both are set in [course-make-blueprint](https://github.com/byuitechops/course-make-blueprint) after successfully making the course a blueprint course & changing the course settings to allow locking individual items.
 
  Additionally it uses the following properties of course.info:
  * canvasOU
