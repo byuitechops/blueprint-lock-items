@@ -1,13 +1,15 @@
 /*eslint-env node, es6*/
 
 /* Module Description */
-/* locks items of blueprint courses */
+/* locks items in a blueprint course */
 
 /* Put dependencies here */
 const canvas = require('canvas-wrapper'),
     asyncLib = require('async');
 
 module.exports = (course, stepCallback) => {
+    /* regex of item titles we don't want to lock */
+    const unlockedNames = [/notes\s*from\s*instructor*/i];
 
     /* only run if the current course is a blueprint course & locking by obj type is enabled */
     if (!course.info.isBlueprint || !course.info.lockByObj) {
@@ -16,32 +18,42 @@ module.exports = (course, stepCallback) => {
         return;
     }
 
-    function lockItems(items, itemType, cb) {
-        asyncLib.eachLimit(items, 5, (item, itemCb) => {
-            canvas.put(`/api/v1/courses/${course.info.canvasOU}/blueprint_templates/default/restrict_item`, {
+    /***********************************************************
+     * Loop through each item in the given array & call lockItem
+     * API endpoint doesn't change based off item type,
+     * just the request params 
+     ***********************************************************/
+    function loopItems(items, itemType, cb) {
+        /* Lock a single item */
+        function lockItem(item, itemCb) {
+            var putObj = {
                 'content_type': itemType.type,
                 'content_id': item.id,
                 'restricted': true
-            },
-            (itemErr, res) => {
+            };
+
+            canvas.put(`/api/v1/courses/${course.info.canvasOU}/blueprint_templates/default/restrict_item`, putObj, (itemErr) => {
                 if (itemErr)
-                    // course.error(itemErr);
                     course.error(new Error(`Unable to lock ${item.name} Err: ${itemErr.message}`));
                 else
-                    course.log('Specific Items Locked', {'Item Name': item.name, 'Item Type': itemType.type}); //`Locked ${itemType.type}: ${item.name}`);
+                    course.log('Specific Items Locked', { 'Item Name': item.name, 'Item Type': itemType.type });
+
                 itemCb(null);
             });
-        }, () => {
+        }
+
+        asyncLib.eachLimit(items, 5, lockItem, () => {
             cb(null);
         });
     }
 
     /********************************************************
-     * Setup uses the itemType object to get all instances
-     * of the given object type. it filters  out instances
-     * whos name matches an item in the unlockedNames array
+     * GETS PARAMS FOR PUT REQUEST (item ID & item type)
+     * GET's all items of a provided type. Filters out 
+     * items we don't want to lock by name. Saves the name &
+     * ID of each remaining item.
      ********************************************************/
-    function setup(itemType, cb) {
+    function generatePUTParams(itemType, cb) {
         itemType.getter(course.info.canvasOU, (err, items) => {
             if (err) {
                 /* move on to next item type if err */
@@ -49,32 +61,29 @@ module.exports = (course, stepCallback) => {
                 cb();
                 return;
             }
-            var keep;
-            var filteredItems = items.filter((item) => {
-                keep = true;
-                unlockedNames.forEach((regex) => {
-                    if (regex.test(item[itemType.name]) || item.restricted_by_master_course == true)
-                        keep = false;
+
+            /* filter out items we don't want to lock (by name). Only keep name and ID of each item */
+            var filteredItems = items.reduce((accum, item) => {
+                /* Only keep item if it passes all tests */
+                var toKeep = unlockedNames.every(regex => {
+                    return !(regex.test(item[itemType.name]) || item.restricted_by_master_course === true);
                 });
-                return keep;
-            }).map((item) => {
-                return {
-                    name: item[itemType.name],
-                    id: item[itemType.id]
-                };
-            });
-            // console.log(JSON.stringify(filteredItems, null, 2));
-            // console.log('starting to lock items');
-            lockItems(filteredItems, itemType, cb);
+
+                /* Item name is saved for reporting purposes */
+                if (toKeep) accum.push({ name: item[itemType.name], id: item[itemType.id] });
+
+                return accum;
+            }, []);
+
+            loopItems(filteredItems, itemType, cb);
         });
     }
+
     /**************
      * START HERE *
      *************/
 
-    /* regex of item titles we don't want to lock */
-    var unlockedNames = [/notes\s*from\s*instructor*/i];
-    /* objects to lock. allows setup to handle any type of object */
+    /* objects to lock. allows generatePUTParams to handle any type of object */
     var toLock = [{
         type: 'assignment',
         getter: canvas.getAssignments,
@@ -107,7 +116,8 @@ module.exports = (course, stepCallback) => {
     }
     ];
 
-    asyncLib.eachSeries(toLock, setup, (err) => {
+    /* Loop through each item type and lock all instances of each type */
+    asyncLib.eachSeries(toLock, generatePUTParams, (err) => {
         if (err) {
             course.error(err);
             stepCallback(null, err);
