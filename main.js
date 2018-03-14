@@ -1,5 +1,3 @@
-/*eslint-env node, es6*/
-
 /* Module Description */
 /* locks items in a blueprint course */
 
