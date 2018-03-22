@@ -4,7 +4,7 @@
     "description": "Lock items in blueprint items",
     "main": "main.js",
     "dependencies": {
-        "canvas-wrapper": "git+https://github.com/byuitechops/canvas-wrapper.git"
+        "canvas-wrapper": "github:byuitechops/canvas-wrapper"
     },
     "devDependencies": {
         "async": "^2.6.0",
