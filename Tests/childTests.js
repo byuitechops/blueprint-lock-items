@@ -5,9 +5,7 @@ const canvas = require('canvas-wrapper');
 module.exports = (course, callback) => {
     tap.test('child-template', (test) => {
 
-        test.pass('potato');
-        test.pass('tomato');
-        test.fail('avacado');
+        //An API call to retrieve all locked items in a course currently does not exist. 4/25/2018
 
         test.end();
     });
