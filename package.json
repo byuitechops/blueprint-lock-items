@@ -1,29 +1,30 @@
 {
-    "name": "blueprint-lock-items",
-    "version": "1.0.0",
-    "description": "Lock items in blueprint items",
-    "main": "main.js",
-    "dependencies": {
-        "canvas-wrapper": "github:byuitechops/canvas-wrapper"
-    },
-    "devDependencies": {
-        "async": "^2.6.0",
-        "child-development-kit": "github:byuitechops/child-development-kit",
-        "tap": "^10.7.3"
-    },
-    "scripts": {
-        "start": "node ./node_modules/child-development-kit/runChild.js",
-        "test": "tap ./node_modules/child-development-kit/testChild.js -T"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/byuitechops/blueprint-lock-items.git"
-    },
-    "author": "Daniel Green",
-    "license": "MIT",
-    "bugs": {
-        "url": "https://github.com/byuitechops/blueprint-lock-items/issues"
-    },
-    "homepage": "https://github.com/byuitechops/blueprint-lock-items#readme",
-    "childType": "postImport"
+  "name": "blueprint-lock-items",
+  "version": "1.0.0",
+  "description": "Lock items in blueprint items",
+  "main": "main.js",
+  "dependencies": {
+    "canvas-wrapper": "github:byuitechops/canvas-wrapper"
+  },
+  "devDependencies": {
+    "async": "^2.6.0",
+    "child-development-kit": "github:byuitechops/child-development-kit",
+    "course-make-blueprint": "github:byuitechops/course-make-blueprint",
+    "tap": "^10.7.3"
+  },
+  "scripts": {
+    "start": "node ./node_modules/child-development-kit/runChild.js",
+    "test": "tap ./node_modules/child-development-kit/runChild.js -T"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/byuitechops/blueprint-lock-items.git"
+  },
+  "author": "Daniel Green",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/byuitechops/blueprint-lock-items/issues"
+  },
+  "homepage": "https://github.com/byuitechops/blueprint-lock-items#readme",
+  "childType": "postImport"
 }
