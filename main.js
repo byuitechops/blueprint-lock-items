@@ -9,9 +9,10 @@ module.exports = (course, stepCallback) => {
     /* regex of item titles we don't want to lock */
     const unlockedNames = [/notes\s*from\s*instructor*/i];
 
-    /* only run if the current course is a blueprint course & locking by obj type is enabled */
-    if (!course.info.isBlueprint || !course.info.lockByObj) {
-        course.message('Determined this course is not a blueprint');
+    /* only run if the current course is a blueprint course & locking by obj type is enabled 
+     Both of these properties are set in course-make-blueprint */
+    if (!course.info.isBlueprint || !course.info.lockingEnabled) {
+        course.message('Determined this course is not a blueprint OR locking items is disabled');
         stepCallback(null, course);
         return;
     }
