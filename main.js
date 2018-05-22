@@ -17,12 +17,6 @@ module.exports = (course, stepCallback) => {
         return;
     }
 
-    if (!course.settings.blueprintLockItems) {
-        course.message('Locking blueprint items was not requested.');
-        stepCallback(null, course);
-        return;
-    }
-
     /***********************************************************
      * Loop through each item in the given array & call lockItem
      * API endpoint doesn't change based off item type,
@@ -96,35 +90,35 @@ module.exports = (course, stepCallback) => {
 
     /* objects to lock. allows generatePUTParams to handle any type of object */
     var toLock = [{
-            type: 'assignment',
-            getter: canvas.getAssignments,
-            name: 'name',
-            id: 'id'
-        },
-        {
-            type: 'attachment',
-            getter: canvas.getFiles,
-            name: 'display_name',
-            id: 'id'
-        },
-        {
-            type: 'discussion_topic',
-            getter: canvas.getDiscussions,
-            name: 'title',
-            id: 'id'
-        },
-        {
-            type: 'quiz',
-            getter: canvas.getQuizzes,
-            name: 'title',
-            id: 'id'
-        },
-        {
-            type: 'wiki_page',
-            getter: canvas.getPages,
-            name: 'title',
-            id: 'page_id'
-        }
+        type: 'assignment',
+        getter: canvas.getAssignments,
+        name: 'name',
+        id: 'id'
+    },
+    {
+        type: 'attachment',
+        getter: canvas.getFiles,
+        name: 'display_name',
+        id: 'id'
+    },
+    {
+        type: 'discussion_topic',
+        getter: canvas.getDiscussions,
+        name: 'title',
+        id: 'id'
+    },
+    {
+        type: 'quiz',
+        getter: canvas.getQuizzes,
+        name: 'title',
+        id: 'id'
+    },
+    {
+        type: 'wiki_page',
+        getter: canvas.getPages,
+        name: 'title',
+        id: 'page_id'
+    }
     ];
 
     /* Loop through each item type and lock all instances of each type */
