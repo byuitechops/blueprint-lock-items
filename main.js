@@ -96,13 +96,13 @@ module.exports = (course, stepCallback) => {
         id: 'id'
     },
     {
-        type: 'attachment',
+        type: 'attachment', // files
         getter: canvas.getFiles,
         name: 'display_name',
         id: 'id'
     },
     {
-        type: 'discussion_topic',
+        type: 'discussion_topic', // discussion boards
         getter: canvas.getDiscussions,
         name: 'title',
         id: 'id'
@@ -114,12 +114,16 @@ module.exports = (course, stepCallback) => {
         id: 'id'
     },
     {
-        type: 'wiki_page',
+        type: 'wiki_page', // pages
         getter: canvas.getPages,
         name: 'title',
         id: 'page_id'
+    }];
+
+    /* Don't lock files on online courses */
+    if (course.settings.platform === 'online') {
+        toLock = toLock.filter(itemType => itemType.type !== 'attachment');
     }
-    ];
 
     /* Loop through each item type and lock all instances of each type */
     asyncLib.eachSeries(toLock, generatePUTParams, (err) => {
